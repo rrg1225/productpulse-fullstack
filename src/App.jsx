@@ -9,13 +9,17 @@ const initialForm = {
   notes: ""
 };
 
+const statusFlow = ["Backlog", "Planned", "In Progress", "Done"];
+
 export default function App() {
   const [metrics, setMetrics] = useState(null);
   const [feedback, setFeedback] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState("");
 
   async function load() {
     setLoading(true);
@@ -41,6 +45,16 @@ export default function App() {
   }, [statusFilter]);
 
   const owners = useMemo(() => [...new Set(feedback.map((item) => item.owner))], [feedback]);
+  const filteredFeedback = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return feedback;
+    return feedback.filter((item) =>
+      [item.title, item.notes, item.segment, item.owner, item.status]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [feedback, search]);
 
   async function submitFeedback(event) {
     event.preventDefault();
@@ -57,6 +71,31 @@ export default function App() {
     }
     setForm(initialForm);
     await load();
+  }
+
+  async function moveStatus(item, direction) {
+    const currentIndex = statusFlow.indexOf(item.status);
+    const nextStatus = statusFlow[currentIndex + direction];
+    if (!nextStatus) return;
+
+    setSavingId(item.id);
+    setError("");
+    try {
+      const response = await fetch(`/api/feedback/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error || "Update failed");
+      }
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingId("");
+    }
   }
 
   return (
@@ -82,20 +121,29 @@ export default function App() {
         <div className="panel">
           <div className="panel-heading">
             <h2>Opportunity queue</h2>
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="">All statuses</option>
-              <option value="Backlog">Backlog</option>
-              <option value="Planned">Planned</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Done">Done</option>
-            </select>
+            <div className="filters">
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search title, owner, segment..."
+              />
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <option value="">All statuses</option>
+                <option value="Backlog">Backlog</option>
+                <option value="Planned">Planned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Done">Done</option>
+              </select>
+            </div>
           </div>
 
           {loading ? (
             <p className="muted">Loading feedback...</p>
+          ) : filteredFeedback.length === 0 ? (
+            <p className="muted">No opportunities match the current filters.</p>
           ) : (
             <div className="feedback-list">
-              {feedback.map((item) => (
+              {filteredFeedback.map((item) => (
                 <article className="feedback-card" key={item.id}>
                   <div>
                     <div className="row">
@@ -108,6 +156,14 @@ export default function App() {
                     <span>{item.segment}</span>
                     <span>{item.owner}</span>
                     <span>{item.status}</span>
+                  </div>
+                  <div className="actions">
+                    <button type="button" disabled={savingId === item.id || item.status === "Backlog"} onClick={() => moveStatus(item, -1)}>
+                      Move back
+                    </button>
+                    <button type="button" disabled={savingId === item.id || item.status === "Done"} onClick={() => moveStatus(item, 1)}>
+                      Advance
+                    </button>
                   </div>
                 </article>
               ))}
@@ -156,6 +212,10 @@ export default function App() {
 
       <section className="panel">
         <h2>Roadmap signals</h2>
+        <div className="breakdown">
+          <Breakdown title="By status" data={metrics?.byStatus} />
+          <Breakdown title="By segment" data={metrics?.bySegment} />
+        </div>
         <div className="signal-grid">
           {metrics?.topOpportunities?.map((item) => (
             <article key={item.id}>
@@ -167,6 +227,21 @@ export default function App() {
         </div>
       </section>
     </main>
+  );
+}
+
+function Breakdown({ title, data = {} }) {
+  return (
+    <div className="breakdown-card">
+      <strong>{title}</strong>
+      <div>
+        {Object.entries(data).map(([label, value]) => (
+          <span key={label}>
+            {label}: {value}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 

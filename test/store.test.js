@@ -29,6 +29,11 @@ test("creates and filters feedback", async () => {
     const metrics = await store.metrics();
     assert.ok(metrics.total >= 5);
     assert.ok(metrics.averageScore > 0);
+
+    const updated = await store.updateFeedback(created.id, { status: "In Progress", impact: 10, effort: 2 });
+    assert.equal(updated.status, "In Progress");
+    assert.equal(updated.impact, 10);
+    assert.equal(updated.effort, 2);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
