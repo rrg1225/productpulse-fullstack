@@ -15,6 +15,7 @@ export default function App() {
   const [metrics, setMetrics] = useState(null);
   const [feedback, setFeedback] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [ownerFilter, setOwnerFilter] = useState("");
   const [search, setSearch] = useState("");
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
@@ -25,7 +26,10 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const query = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
+      if (ownerFilter) params.set("owner", ownerFilter);
+      const query = params.toString() ? `?${params.toString()}` : "";
       const [metricsResponse, feedbackResponse] = await Promise.all([
         fetch("/api/metrics"),
         fetch(`/api/feedback${query}`)
@@ -42,7 +46,7 @@ export default function App() {
 
   useEffect(() => {
     load();
-  }, [statusFilter]);
+  }, [statusFilter, ownerFilter]);
 
   const owners = useMemo(() => [...new Set(feedback.map((item) => item.owner))], [feedback]);
   const filteredFeedback = useMemo(() => {
@@ -98,6 +102,30 @@ export default function App() {
     }
   }
 
+  function exportCsv() {
+    const rows = [
+      ["Title", "Segment", "Owner", "Status", "Impact", "Effort", "Score", "Notes"],
+      ...filteredFeedback.map((item) => [
+        item.title,
+        item.segment,
+        item.owner,
+        item.status,
+        item.impact,
+        item.effort,
+        item.score,
+        item.notes
+      ])
+    ];
+    const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "productpulse-opportunities.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -127,6 +155,12 @@ export default function App() {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search title, owner, segment..."
               />
+              <select value={ownerFilter} onChange={(event) => setOwnerFilter(event.target.value)}>
+                <option value="">All owners</option>
+                {owners.map((owner) => (
+                  <option key={owner} value={owner}>{owner}</option>
+                ))}
+              </select>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                 <option value="">All statuses</option>
                 <option value="Backlog">Backlog</option>
@@ -134,6 +168,9 @@ export default function App() {
                 <option value="In Progress">In Progress</option>
                 <option value="Done">Done</option>
               </select>
+              <button type="button" className="secondary-action" disabled={filteredFeedback.length === 0} onClick={exportCsv}>
+                Export CSV
+              </button>
             </div>
           </div>
 

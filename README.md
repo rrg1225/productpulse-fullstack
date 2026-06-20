@@ -11,6 +11,7 @@ ProductPulse is a polished full-stack demo for product feedback triage. It turns
 ### 项目亮点
 
 - **完整产品闭环**：新增反馈、搜索筛选、状态推进、Roadmap 信号分析都可在 UI 中完成。
+- **可交付数据流**：支持负责人筛选与 CSV 导出，方便把 demo 结果带入评审或产品会议。
 - **真实全栈结构**：React 19 + Vite 前端，Express REST API 后端，文件型 JSON 数据层。
 - **可解释评分模型**：机会分 = `impact * 12 / effort`，让高影响、低成本事项自然排到前面。
 - **零数据库演示**：本地自动生成 `data/productpulse.json`，克隆后无需 MySQL/Postgres 即可体验。
@@ -68,6 +69,7 @@ npm test         # 运行 Node 测试
 ### Highlights
 
 - **End-to-end product workflow**: create feedback, search, filter, move items through statuses, and inspect roadmap signals.
+- **Exportable workflow**: owner filtering and CSV export make the demo useful for review and handoff scenarios.
 - **Real full-stack shape**: React 19 + Vite frontend, Express REST API, and a file-backed JSON store.
 - **Explainable scoring**: opportunity score = `impact * 12 / effort`, promoting high-impact, low-effort work.
 - **Database-free demo**: the app auto-seeds `data/productpulse.json`, so reviewers can run it immediately.
