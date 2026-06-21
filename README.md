@@ -5,6 +5,7 @@
 ProductPulse is a polished full-stack demo for product feedback triage. It turns scattered customer requests into scored roadmap opportunities with a React dashboard, Express REST API, JSON persistence, and automated tests.
 
 > Resume and interview brief: [PORTFOLIO.md](PORTFOLIO.md)
+> Enterprise architecture: [docs/ENTERPRISE_ARCHITECTURE.md](docs/ENTERPRISE_ARCHITECTURE.md)
 
 ---
 

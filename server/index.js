@@ -3,6 +3,7 @@ import cors from "cors";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { createStore, scoreFeedback } from "./store.js";
+import { createRuntimeState, installRuntimeControls, runtimeMetrics } from "./runtime.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, "..");
@@ -11,7 +12,9 @@ export async function createApp(options = {}) {
   const dataFile = resolve(rootDir, options.dataFile || process.env.DATA_FILE || "./data/productpulse.json");
   const store = await createStore(dataFile);
   const app = express();
+  const runtime = createRuntimeState("productpulse");
 
+  installRuntimeControls(app, runtime);
   app.use(cors());
   app.use(express.json({ limit: "256kb" }));
 
@@ -25,6 +28,10 @@ export async function createApp(options = {}) {
     } catch (error) {
       next(error);
     }
+  });
+
+  app.get("/api/metrics/runtime", (_req, res) => {
+    res.json(runtimeMetrics(runtime));
   });
 
   app.get("/api/feedback", async (req, res, next) => {

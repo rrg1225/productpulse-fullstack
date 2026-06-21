@@ -7,3 +7,4 @@ data/*.json
 npm-debug.log*
 .DS_Store
 Thumbs.db
+*.local.docx
