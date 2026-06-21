@@ -185,7 +185,7 @@ export default function App() {
                   <div>
                     <div className="row">
                       <strong>{item.title}</strong>
-                      <span className="score">Score {item.score}</span>
+                      <span className="score">{item.priority} / {item.score}</span>
                     </div>
                     <p>{item.notes}</p>
                   </div>
@@ -252,6 +252,7 @@ export default function App() {
         <div className="breakdown">
           <Breakdown title="By status" data={metrics?.byStatus} />
           <Breakdown title="By segment" data={metrics?.bySegment} />
+          <Breakdown title="By priority" data={metrics?.byPriority} />
         </div>
         <div className="signal-grid">
           {metrics?.topOpportunities?.map((item) => (

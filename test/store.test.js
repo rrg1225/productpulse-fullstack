@@ -3,10 +3,12 @@ import test from "node:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { createStore, scoreFeedback } from "../server/store.js";
+import { createStore, priorityTier, scoreFeedback } from "../server/store.js";
 
 test("scores high-impact low-effort feedback above low-impact items", () => {
   assert.ok(scoreFeedback({ impact: 9, effort: 3 }) > scoreFeedback({ impact: 4, effort: 8 }));
+  assert.equal(priorityTier({ impact: 9, effort: 2 }), "Strategic");
+  assert.equal(priorityTier({ impact: 2, effort: 8 }), "Low");
 });
 
 test("creates and filters feedback", async () => {
@@ -29,6 +31,7 @@ test("creates and filters feedback", async () => {
     const metrics = await store.metrics();
     assert.ok(metrics.total >= 5);
     assert.ok(metrics.averageScore > 0);
+    assert.ok(metrics.byPriority.High || metrics.byPriority.Strategic);
 
     const updated = await store.updateFeedback(created.id, { status: "In Progress", impact: 10, effort: 2 });
     assert.equal(updated.status, "In Progress");

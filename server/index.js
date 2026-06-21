@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
-import { createStore, scoreFeedback } from "./store.js";
+import { createStore, enrichFeedback } from "./store.js";
 import { createRuntimeState, installRuntimeControls, runtimeMetrics } from "./runtime.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -37,7 +37,7 @@ export async function createApp(options = {}) {
   app.get("/api/feedback", async (req, res, next) => {
     try {
       const feedback = await store.listFeedback(req.query);
-      res.json(feedback.map((item) => ({ ...item, score: scoreFeedback(item) })));
+      res.json(feedback.map(enrichFeedback));
     } catch (error) {
       next(error);
     }
@@ -46,7 +46,7 @@ export async function createApp(options = {}) {
   app.post("/api/feedback", async (req, res, next) => {
     try {
       const item = await store.createFeedback(req.body);
-      res.status(201).json({ ...item, score: scoreFeedback(item) });
+      res.status(201).json(enrichFeedback(item));
     } catch (error) {
       next(error);
     }
@@ -55,7 +55,7 @@ export async function createApp(options = {}) {
   app.patch("/api/feedback/:id", async (req, res, next) => {
     try {
       const item = await store.updateFeedback(req.params.id, req.body);
-      res.json({ ...item, score: scoreFeedback(item) });
+      res.json(enrichFeedback(item));
     } catch (error) {
       next(error);
     }

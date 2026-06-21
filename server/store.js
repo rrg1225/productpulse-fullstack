@@ -11,6 +11,22 @@ export function scoreFeedback(item) {
   return Math.round((impact * 12) / effort);
 }
 
+export function priorityTier(item) {
+  const score = scoreFeedback(item);
+  if (score >= 36) return "Strategic";
+  if (score >= 24) return "High";
+  if (score >= 12) return "Medium";
+  return "Low";
+}
+
+export function enrichFeedback(item) {
+  return {
+    ...item,
+    score: scoreFeedback(item),
+    priority: priorityTier(item)
+  };
+}
+
 export async function createStore(filePath) {
   async function ensureFile() {
     await mkdir(dirname(filePath), { recursive: true });
@@ -94,11 +110,16 @@ export async function createStore(filePath) {
         averageScore: feedback.length ? Math.round(scoreTotal / feedback.length) : 0,
         byStatus: groupCount(feedback, "status"),
         bySegment: groupCount(feedback, "segment"),
+        byPriority: feedback.reduce((result, item) => {
+          const tier = priorityTier(item);
+          result[tier] = (result[tier] || 0) + 1;
+          return result;
+        }, {}),
         topOpportunities: feedback
           .slice()
           .sort((a, b) => scoreFeedback(b) - scoreFeedback(a))
           .slice(0, 3)
-          .map((item) => ({ ...item, score: scoreFeedback(item) }))
+          .map(enrichFeedback)
       };
     }
   };
