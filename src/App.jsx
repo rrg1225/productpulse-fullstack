@@ -70,7 +70,7 @@ export default function App() {
     });
     if (!response.ok) {
       const payload = await response.json();
-      setError(payload.error || "Create failed");
+      setError(payload.error?.message || payload.error || "Create failed");
       return;
     }
     setForm(initialForm);
@@ -92,7 +92,7 @@ export default function App() {
       });
       if (!response.ok) {
         const payload = await response.json();
-        throw new Error(payload.error || "Update failed");
+        throw new Error(payload.error?.message || payload.error || "Update failed");
       }
       await load();
     } catch (err) {

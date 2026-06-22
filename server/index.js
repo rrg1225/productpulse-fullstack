@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { createStore, enrichFeedback } from "./store.js";
 import { createRuntimeState, installRuntimeControls, runtimeMetrics } from "./runtime.js";
+import { asyncRoute, errorHandler, notFound, requireObjectBody } from "./http.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, "..");
@@ -22,55 +23,37 @@ export async function createApp(options = {}) {
     res.json({ ok: true, service: "productpulse", time: new Date().toISOString() });
   });
 
-  app.get("/api/metrics", async (_req, res, next) => {
-    try {
-      res.json(await store.metrics());
-    } catch (error) {
-      next(error);
-    }
-  });
+  app.get("/api/metrics", asyncRoute(async (_req, res) => {
+    res.json(await store.metrics());
+  }));
 
   app.get("/api/metrics/runtime", (_req, res) => {
     res.json(runtimeMetrics(runtime));
   });
 
-  app.get("/api/feedback", async (req, res, next) => {
-    try {
-      const feedback = await store.listFeedback(req.query);
-      res.json(feedback.map(enrichFeedback));
-    } catch (error) {
-      next(error);
-    }
-  });
+  app.get("/api/feedback", asyncRoute(async (req, res) => {
+    const feedback = await store.listFeedback(req.query);
+    res.json(feedback.map(enrichFeedback));
+  }));
 
-  app.post("/api/feedback", async (req, res, next) => {
-    try {
-      const item = await store.createFeedback(req.body);
-      res.status(201).json(enrichFeedback(item));
-    } catch (error) {
-      next(error);
-    }
-  });
+  app.post("/api/feedback", asyncRoute(async (req, res) => {
+    const item = await store.createFeedback(requireObjectBody(req.body));
+    res.status(201).json(enrichFeedback(item));
+  }));
 
-  app.patch("/api/feedback/:id", async (req, res, next) => {
-    try {
-      const item = await store.updateFeedback(req.params.id, req.body);
-      res.json(enrichFeedback(item));
-    } catch (error) {
-      next(error);
-    }
-  });
+  app.patch("/api/feedback/:id", asyncRoute(async (req, res) => {
+    const item = await store.updateFeedback(req.params.id, requireObjectBody(req.body));
+    res.json(enrichFeedback(item));
+  }));
+
+  app.use("/api", notFound);
 
   app.use(express.static(join(rootDir, "dist")));
   app.get("*", (_req, res) => {
     res.sendFile(join(rootDir, "dist", "index.html"));
   });
 
-  app.use((error, _req, res, _next) => {
-    res.status(error.statusCode || 500).json({
-      error: error.message || "unexpected server error"
-    });
-  });
+  app.use(errorHandler("productpulse"));
 
   return app;
 }

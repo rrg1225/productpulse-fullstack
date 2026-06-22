@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { seedData } from "./seed.js";
+import { ApiError } from "./http.js";
 
 const VALID_STATUSES = new Set(["Backlog", "Planned", "In Progress", "Done"]);
 
@@ -60,9 +61,10 @@ export async function createStore(filePath) {
     async createFeedback(input) {
       const title = String(input.title || "").trim();
       if (title.length < 4) {
-        const error = new Error("title must be at least 4 characters");
-        error.statusCode = 400;
-        throw error;
+        throw new ApiError(400, "invalid_feedback", "title must be at least 4 characters", {
+          field: "title",
+          minLength: 4
+        });
       }
 
       const item = {
@@ -87,9 +89,7 @@ export async function createStore(filePath) {
       const data = await read();
       const item = data.feedback.find((entry) => entry.id === id);
       if (!item) {
-        const error = new Error("feedback item not found");
-        error.statusCode = 404;
-        throw error;
+        throw new ApiError(404, "feedback_not_found", "feedback item not found");
       }
 
       if (patch.status && VALID_STATUSES.has(patch.status)) item.status = patch.status;
