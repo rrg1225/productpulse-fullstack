@@ -4,7 +4,7 @@
 
 - Built a full-stack product feedback intelligence dashboard with React, Express, REST APIs, local JSON persistence, scoring logic, filtering, and CSV export.
 - Implemented a roadmap opportunity model that ranks customer feedback by impact and effort, then exposes aggregate metrics through API endpoints.
-- Covered core backend behavior with automated tests for scoring, creation, filtering, updates, and metrics.
+- Added structured API errors, request correlation, runtime metrics, and CI-backed production builds.
 
 ## What This Proves
 
@@ -16,7 +16,6 @@
 
 ```bash
 npm ci
-npm test
 npm run build
 ```
 
