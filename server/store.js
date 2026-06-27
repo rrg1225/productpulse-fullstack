@@ -52,9 +52,17 @@ export async function createStore(filePath) {
   return {
     async listFeedback(filters = {}) {
       const data = await read();
+      const query = String(filters.q || filters.search || "").trim().toLowerCase();
       return data.feedback
         .filter((item) => !filters.status || item.status === filters.status)
         .filter((item) => !filters.owner || item.owner === filters.owner)
+        .filter((item) => {
+          if (!query) return true;
+          return [item.title, item.notes, item.segment, item.owner, item.status]
+            .join(" ")
+            .toLowerCase()
+            .includes(query);
+        })
         .sort((a, b) => scoreFeedback(b) - scoreFeedback(a));
     },
 

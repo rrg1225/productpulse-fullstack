@@ -29,6 +29,7 @@ export default function App() {
       const params = new URLSearchParams();
       if (statusFilter) params.set("status", statusFilter);
       if (ownerFilter) params.set("owner", ownerFilter);
+      if (search.trim()) params.set("q", search.trim());
       const query = params.toString() ? `?${params.toString()}` : "";
       const [metricsResponse, feedbackResponse] = await Promise.all([
         fetch("/api/metrics"),
@@ -46,7 +47,7 @@ export default function App() {
 
   useEffect(() => {
     load();
-  }, [statusFilter, ownerFilter]);
+  }, [statusFilter, ownerFilter, search]);
 
   const owners = useMemo(() => [...new Set(feedback.map((item) => item.owner))], [feedback]);
   const filteredFeedback = useMemo(() => {

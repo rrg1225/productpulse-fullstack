@@ -38,4 +38,10 @@ test("creates feedback and returns scored roadmap data", async (t) => {
   const metrics = await fetch(`${baseUrl}/api/metrics`);
   assert.equal(metrics.status, 200);
   assert.ok((await metrics.json()).total >= 1);
+
+  const filtered = await fetch(`${baseUrl}/api/feedback?q=sso`);
+  assert.equal(filtered.status, 200);
+  const results = await filtered.json();
+  assert.equal(results.length, 1);
+  assert.match(results[0].title, /SSO/);
 });
