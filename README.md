@@ -82,9 +82,22 @@ Copy `.env.example` to `.env` only when overriding defaults.
 | `PORT` | `4310` | Express API port |
 | `DATA_FILE` | `./data/productpulse.json` | Local JSON database path |
 
+## Quality Gates
+
+- `npm test` covers the feedback API with an isolated temporary data store.
+- `npm run build` validates the production React bundle.
+- GitHub Actions runs tests and build for pull requests and `main`.
+- Local JSON data is ignored by Git, while the seed path stays reproducible.
+
 ## GitHub Readiness
 
 This repository is built to read well in a portfolio: clear product narrative, real API boundaries, local persistence, observable runtime behavior, and a runnable demo without external services.
+
+## Roadmap
+
+- Add authenticated reviewer roles and approval history.
+- Add database adapters for Postgres or SQLite.
+- Add CSV import with validation reports for customer-success handoff.
 
 ## License
 
