@@ -45,3 +45,16 @@ test("creates feedback and returns scored roadmap data", async (t) => {
   assert.equal(results.length, 1);
   assert.match(results[0].title, /SSO/);
 });
+
+test("exposes an operational scorecard", async (t) => {
+  const tempDir = await mkdtemp(join(tmpdir(), "productpulse-"));
+  t.after(() => rm(tempDir, { recursive: true, force: true }));
+  const { server, baseUrl } = await startServer(join(tempDir, "data.json"));
+  t.after(() => server.close());
+
+  const response = await fetch(`${baseUrl}/api/metrics/scorecard`);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.grade, "A");
+  assert.ok(body.checks.some((check) => check.id === "runtime_counters"));
+});

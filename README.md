@@ -23,7 +23,7 @@ Product teams often receive feedback from sales, support, and enterprise custome
 - Owner and status filters plus CSV export.
 - File-backed JSON store that auto-seeds local demo data.
 - Structured API errors with request IDs.
-- Runtime metrics endpoint for operational visibility.
+- Runtime metrics and scorecard endpoints for operational visibility.
 - Responsive dashboard with roadmap signal breakdowns.
 
 ## Architecture
@@ -69,6 +69,7 @@ npm run start    # serve Express and built frontend
 | `GET` | `/api/health` | Service health |
 | `GET` | `/api/metrics` | Product feedback metrics and top opportunities |
 | `GET` | `/api/metrics/runtime` | Runtime request and status metrics |
+| `GET` | `/api/metrics/scorecard` | Operational readiness score and checks |
 | `GET` | `/api/feedback` | List feedback with optional filters |
 | `POST` | `/api/feedback` | Create feedback |
 | `PATCH` | `/api/feedback/:id` | Update owner, status, impact, or effort |
